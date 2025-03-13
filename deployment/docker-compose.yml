@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  video-analysis:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    ports:
+      - "8501:8501"  # Streamlit port
+      - "5555:5555"  # Auth server port
+    environment:
+      - VITE_AUTH_ENABLED=true
+      - VITE_AUTH_URL=${VITE_AUTH_URL}
+      - FRONTEND_URL=http://localhost:5555
+      - DOCKER_ENV=true
+      # Pass through Azure OpenAI settings from .env
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION}
+      - AZURE_OPENAI_DEPLOYMENT_NAME=${AZURE_OPENAI_DEPLOYMENT_NAME}
+      # Pass through Whisper settings from .env
+      - WHISPER_ENDPOINT=${WHISPER_ENDPOINT}
+      - WHISPER_API_KEY=${WHISPER_API_KEY}
+      - WHISPER_API_VERSION=${WHISPER_API_VERSION}
+      - WHISPER_DEPLOYMENT_NAME=${WHISPER_DEPLOYMENT_NAME}
+    volumes:
+      - ../video:/app/video  # Persist video output directory
+    restart: unless-stopped
