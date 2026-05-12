@@ -1,0 +1,4 @@
+[server]
+# Tamaño máximo de subida en MB (por defecto 200)
+maxUploadSize = 2048
+maxMessageSize = 2048
