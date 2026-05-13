@@ -1,0 +1,11 @@
+name: video-analysis-with-aoai
+metadata:
+  template: video-analysis-with-aoai@1.0.0
+services:
+  web:
+    project: .
+    language: py
+    host: containerapp
+    docker:
+      path: Dockerfile
+      context: .
