@@ -55,7 +55,8 @@ def _stamp_video_time(frame, timestamp_sec, font_size=16):
     return np.array(pil_img)
 
 # System prompt for the Purpose
-SYSTEM_PROMPT = SYSTEM_PROMPT_COMBINED
+SYSTEM_PROMPT = GENERIC_SYSTEM_PROMPT
+#SYSTEM_PROMPT = SYSTEM_PROMPT_COMBINED
 print(f'SYSTEM PROMPT: [{SYSTEM_PROMPT}]')
 print(f'USER PROMPT:   [{USER_PROMPT}]')
 
