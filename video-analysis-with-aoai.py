@@ -54,12 +54,6 @@ def _stamp_video_time(frame, timestamp_sec, font_size=16):
     draw.text((5, frame.shape[0] + 1), timestamp_text, font=font, fill=(255, 255, 255))
     return np.array(pil_img)
 
-# System prompt for the Purpose
-SYSTEM_PROMPT = GENERIC_SYSTEM_PROMPT
-#SYSTEM_PROMPT = SYSTEM_PROMPT_COMBINED
-print(f'SYSTEM PROMPT: [{SYSTEM_PROMPT}]')
-print(f'USER PROMPT:   [{USER_PROMPT}]')
-
 # Default configuration
 SEGMENT_DURATION = 16 # In seconds, Set to 0 to not split the video
 DEFAULT_TEMPERATURE = 0.5
@@ -69,6 +63,12 @@ REASONING_EFFORT = "medium" # "none", "low", "medium" or "high"
 
 # Load configuration
 load_dotenv(override=True)
+
+# System prompt for the Purpose
+SYSTEM_PROMPT = os.environ.get("SYSTEM_PROMPT", "You are an expert on Video Analysis. You will be shown a series of images from a video. Describe what is happening in the video, including the objects, actions, and any other relevant details. Be as specific and detailed as possible.")
+#SYSTEM_PROMPT = SYSTEM_PROMPT_COMBINED
+print(f'SYSTEM PROMPT: [{SYSTEM_PROMPT}]')
+print(f'USER PROMPT:   [{USER_PROMPT}]')
 
 # Whisper: enable/disable from .env (USE_WHISPER=true|false). Defaults to False.
 USE_WHISPER = os.environ.get("USE_WHISPER", "False").strip().lower() in ("true", "1", "yes")
