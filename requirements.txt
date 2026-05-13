@@ -5,5 +5,5 @@ openai==2.36.0
 streamlit==1.57.0
 yt-dlp==2026.3.17
 azure-identity==1.25.3
-Pillow==11.3.0
+Pillow==12.2.0
 numpy==2.4.4
