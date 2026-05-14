@@ -273,6 +273,10 @@ def analyze_video(base64frames, system_prompt, user_prompt, transcription, tempe
 
 # Split the video in segments of N seconds (by default 3 minutes). If segment_length is 0 the full video is processed
 def split_video(video_path, output_dir, segment_length=180, start_second=0):
+    # Make sure the output directory exists so moviepy doesn't fall back to writing
+    # intermediate files in the project root.
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -435,8 +439,8 @@ with st.sidebar:
             st.caption(f"Estimated frames per segment: {estimated_frames} / {MAX_FRAMES_PER_SEGMENT}")
         exceeds_frame_limit = False
 
-# Prepare the segment directory
-output_dir = "segments"
+# Prepare the segment directory (segments are transient: written here and deleted after processing)
+output_dir = "temp"
 os.makedirs(output_dir, exist_ok=True)
 
 # Video file or Video URL
@@ -508,7 +512,7 @@ if analyze_clicked:
             ydl_opts = {
                     #'format': 'best',
                     'format': '(bestvideo[vcodec^=av01]/bestvideo[vcodec^=vp9]/bestvideo)+bestaudio/best',
-                    'outtmpl': 'segment_%(start)s.mp4',
+                    'outtmpl': os.path.join(output_dir, 'segment_%(start)s.mp4'),
                     'force_keyframes_at_cuts': True,
             }
             ydl = yt_dlp.YoutubeDL(ydl_opts)
@@ -533,7 +537,7 @@ if analyze_clicked:
                     st.warning("Analysis cancelled by user.")
                     break
                 end = start + duracion_segmento
-                filename = f'segments/segment_{start}-{end}.mp4'
+                filename = os.path.join(output_dir, f'segment_{start}-{end}.mp4')
                 with st.spinner(f"Downloading video from second {start} to {end}..."):
                     ydl_opts['outtmpl']['default'] = filename
                     ydl_opts['download_ranges'] = download_range_func(None, [(start, end)])
