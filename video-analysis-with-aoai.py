@@ -75,7 +75,7 @@ USE_WHISPER = os.environ.get("USE_WHISPER", "False").strip().lower() in ("true",
 
 # Configuration of OpenAI
 aoai_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
-aoai_api_version = '2025-04-01-preview'
+aoai_api_version = os.environ.get("AZURE_OPENAI_API_VERSION", '2025-04-01-preview')
 aoai_model_name = os.environ.get("AZURE_OPENAI_DEPLOYMENT_NAME")
 
 # Create AOAI client once per Streamlit session/process. @st.cache_resource ensures
@@ -115,17 +115,33 @@ aoai_client = _get_aoai_client()
 
 # Configuration of Whisper
 if USE_WHISPER:
-    whisper_endpoint = os.environ["WHISPER_ENDPOINT"]
-    whisper_apikey = os.environ["WHISPER_API_KEY"]
-    whisper_model_name = os.environ["WHISPER_DEPLOYMENT_NAME"]
+    whisper_endpoint = os.environ.get("WHISPER_ENDPOINT")
+    whisper_model_name = os.environ.get("WHISPER_DEPLOYMENT_NAME")
 
     @st.cache_resource(show_spinner=False)
     def _get_whisper_client():
-        return AzureOpenAI(
-            api_version='2024-02-01',
-            azure_endpoint=whisper_endpoint,
-            api_key=whisper_apikey
-        )
+        print(f'whisper_endpoint: {whisper_endpoint}, whisper_model_name: {whisper_model_name}')
+        if whisper_apikey:= os.environ.get("WHISPER_API_KEY"):
+            print("Using API key authentication for Whisper in Azure OpenAI")
+            whisper_client = AzureOpenAI(
+                azure_deployment=whisper_model_name,
+                api_version=os.environ.get("WHISPER_API_VERSION", '2024-02-01'),
+                azure_endpoint=whisper_endpoint,
+                api_key=whisper_apikey
+            )
+        else:
+            print("Using Azure AD authentication for Whisper in Azure OpenAI") 
+            credential = DefaultAzureCredential()
+            token_provider = get_bearer_token_provider(
+                credential, "https://cognitiveservices.azure.com/.default"
+            )
+            whisper_client = AzureOpenAI(
+                azure_deployment=whisper_model_name,
+                api_version=os.environ.get("WHISPER_API_VERSION", '2024-02-01'),
+                azure_endpoint=whisper_endpoint,
+                azure_ad_token_provider=token_provider
+            )
+        return whisper_client
 
     whisper_client = _get_whisper_client()
 
@@ -221,7 +237,7 @@ def analyze_video(base64frames, system_prompt, user_prompt, transcription, tempe
                     {"role": "user", "content": user_prompt}, #"These are the frames from the video.",},
                     {"role": "user", "content": [
                         *map(lambda x: {"type": "image_url", "image_url": {"url": f'data:image/jpg;base64,{x}', "detail": "high"}}, base64frames),
-                        {"type": "text", "text": f"The audio transcription is: {transcription.text}"}
+                        {"type": "text", "text": f"The audio transcription is: {transcription}"}
                     ]}
                 ],
                 #temperature=temperature, #0.5,
