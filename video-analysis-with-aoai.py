@@ -67,8 +67,6 @@ load_dotenv(override=True)
 # System prompt for the Purpose
 SYSTEM_PROMPT = os.environ.get("SYSTEM_PROMPT", "You are an expert on Video Analysis. You will be shown a series of images from a video. Describe what is happening in the video, including the objects, actions, and any other relevant details. Be as specific and detailed as possible. espond with a SINGLE JSON object that exactly matches this schema, and nothing else: {'description': '', 'objects': [], 'actions': []}")
 #SYSTEM_PROMPT = SYSTEM_PROMPT_COMBINED
-print(f'SYSTEM PROMPT: [{SYSTEM_PROMPT}]')
-print(f'USER PROMPT:   [{USER_PROMPT}]')
 
 # Whisper: enable/disable from .env (USE_WHISPER=true|false). Defaults to False.
 USE_WHISPER = os.environ.get("USE_WHISPER", "False").strip().lower() in ("true", "1", "yes")
@@ -419,6 +417,8 @@ with st.sidebar:
     temperature = 0.0
     system_prompt = st.text_area('System Prompt', SYSTEM_PROMPT)
     user_prompt = st.text_area('User Prompt', USER_PROMPT)
+    print(f'SYSTEM PROMPT: [{SYSTEM_PROMPT}]')
+    print(f'USER PROMPT:   [{USER_PROMPT}]')
 
     # Validate that the number of frames per segment doesn't exceed the model limit (50)
     MAX_FRAMES_PER_SEGMENT = 50
