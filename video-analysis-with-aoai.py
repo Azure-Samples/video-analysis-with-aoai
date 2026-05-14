@@ -65,7 +65,7 @@ REASONING_EFFORT = "medium" # "none", "low", "medium" or "high"
 load_dotenv(override=True)
 
 # System prompt for the Purpose
-SYSTEM_PROMPT = os.environ.get("SYSTEM_PROMPT", "You are an expert on Video Analysis. You will be shown a series of images from a video. Describe what is happening in the video, including the objects, actions, and any other relevant details. Be as specific and detailed as possible. espond with a SINGLE JSON object that exactly matches this schema, and nothing else: {'description': '', 'objects': [], 'actions': []}")
+SYSTEM_PROMPT = os.environ.get("SYSTEM_PROMPT", GENERIC_SYSTEM_PROMPT)
 #SYSTEM_PROMPT = SYSTEM_PROMPT_COMBINED
 
 # Whisper: enable/disable from .env (USE_WHISPER=true|false). Defaults to False.
