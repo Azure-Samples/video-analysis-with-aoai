@@ -1,0 +1,44 @@
+# Python / virtualenv
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Secrets / local config
+.env
+.env.bak
+.azure/
+.streamlit/
+
+# Generated / runtime artifacts (large)
+frames/
+segments/
+temp/
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.avi
+*.wav
+*.mp3
+*.zip
+*.tar
+*.gz
+
+# Repo / tooling
+OLD/
+.git/
+.gitignore
+.vscode/
+.github/
+
+# IaC / scripts (not needed inside the container)
+infra/
+azure.yaml
+azd-up.ps1
+deploy.ps1
+
+# Notebooks / docs / images (not used at runtime)
+*.ipynb
+README.md
+Screenshot.png
