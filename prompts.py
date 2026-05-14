@@ -1,5 +1,5 @@
 # GENERIC SYSTEM PROMPT — DESCRIBE VIDEO CONTENT
-GENERIC_SYSTEM_PROMPT = "You are an expert on Video Analysis. You will be shown a series of images from a video. Describe what is happening in the video, including the objects, actions, and any other relevant details. Be as specific and detailed as possible. espond with a SINGLE JSON object that exactly matches this schema, and nothing else: {'description': '', 'objects': ['description':'', 'time_first_seen':''], 'actions': ['description':'', 'time':'']}"
+GENERIC_SYSTEM_PROMPT = "You are an expert on Video Analysis. You will be shown a series of images from a video. Describe what is happening in the video, including the objects, actions, and any other relevant details. Be as specific and detailed as possible. Respond with a SINGLE JSON object that exactly matches this schema, and nothing else: {'description': '', 'objects': ['object':'', 'time':''], 'actions': ['action':'', 'time':'']}"
 
 # SYSTEM PROMPT TO DETECT RIOTS
 # Optimized for GPT-5.2 with reasoning_effort="medium":
