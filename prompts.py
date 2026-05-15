@@ -36,7 +36,6 @@ CONFIDENCE
 
 OUTPUT (STRICT)
 Respond with a SINGLE JSON object that exactly matches this schema, and nothing else (no prose, no markdown, no code fences):
-
 {
   "incident_detected": true | false,
   "classification": "NO_INCIDENT" | "POSSIBLE_RIOT" | "LIKELY_RIOT" | "CONFIRMED_RIOT",
@@ -107,7 +106,6 @@ CONFIDENCE
 
 OUTPUT (STRICT)
 Respond with a SINGLE JSON object that exactly matches this schema, and nothing else (no prose, no markdown, no code fences):
-
 {
   "incident_detected": true | false,
   "classification": "NO_INCIDENT" | "POSSIBLE_ABANDONMENT" | "LIKELY_ABANDONMENT" | "CONFIRMED_ABANDONMENT_SUSPICIOUS",
@@ -138,7 +136,7 @@ Rules for the JSON:
 - `reasoning` must be concise (max ~3 sentences) and cite the frames/timestamps that support the decision, including the location in the frame (e.g. "background near the planter at frame 12").'''
 
 
-USER_PROMPT = "These are the sequence of video frames that you have to analyze to detect the incident"
+USER_PROMPT = "These are the sequence of video frames that you have to analyze"
 #USER_PROMPT = "These are the frames from the video."
 
 
@@ -160,9 +158,11 @@ INPUT
 
 WHAT TO INSPECT (be exhaustive — do not skip regions)
 - Cover the WHOLE frame on every frame: foreground, mid-ground AND background. Distant subjects only a few dozen pixels tall, items in corners, near walls, planters, columns, fences, stairs, benches, railings or pavement seams all count.
-- Track collective behavior across frames (sudden running, scattering, charging, converging on one point) AND track individual items: mentally enumerate every person visible at the START and what they carry/wear/hold (backpack on shoulder, bag in hand, box, etc.); re-enumerate the same persons at the END. A person previously carrying something who later appears empty-handed, partially out of frame, or no longer present is a strong abandonment signal.
-- "Walking away" includes leaving through a frame edge, shrinking into the distance, mixing into a crowd, or simply stepping away several meters and not returning within the visible sequence.
+- Pay EXPLICIT attention to the BACKGROUND of the scene (top portion of the frame, near walls, hedges, planters, building corners). Distant figures placing items there are easy to overlook and are exactly where real abandonment events typically happen.
+- Track collective behavior across frames (sudden running, scattering, charging, converging on one point) AND track individual items: mentally enumerate every person visible at the START and what they carry/wear/hold; re-enumerate the same persons at the END. A person previously carrying something who later appears empty-handed, partially out of frame, or no longer present is a strong abandonment signal.
+- "Walking away" includes leaving through a frame edge, shrinking into the distance, mixing into a crowd, walking back into a building, going behind a wall/planter, or simply stepping away several meters and not returning within the visible sequence.
 - An item that remains static on the ground for several frames while no one is touching it is unattended — report it even if you did not see the placement moment (it likely happened just before the sequence began or between sampled frames).
+- LOW-CONTRAST OBJECTS: grey, dark, navy, brown or muted-color bags on grey/dark pavement are low-contrast and small but they are exactly the kind of object we must catch. Do NOT dismiss a bag-shaped silhouette as "shadow" or "part of the floor".
 
 INCIDENT TYPE 1 — RIOT
 Detect: physical fights, pushing or charging crowds, throwing objects (bottles, stones, fireworks), vandalism (breaking property, graffiti, fires), confrontations with police or security, mass chaotic running, weapons (sticks, bats, bottles used as weapons), barricades, fire, smoke, broken glass.
@@ -174,8 +174,18 @@ Riot classification:
 - CONFIRMED_RIOT: large-scale violence, generalized chaos, fires, mass charging, weapons, clashes with security forces.
 
 INCIDENT TYPE 2 — ABANDONED OBJECT
-Detect: a person places any portable object on the ground (or any surface) and moves away from it within the sequence, OR a portable item is visible unattended on the ground without a clear owner attending it. The exact category of the object (backpack, bag, box, package, bundle, sack, fabric item, suitcase, cart, etc.) is irrelevant. Color, brand or shape are NOT used to dismiss it. Do NOT dismiss an item because it "looks like" decoration, merchandise or trash.
+Detect: a person places any portable object on the ground (or any surface) and moves away from it within the sequence, OR a clearly identifiable portable item (bag, backpack, suitcase, duffel, box, parcel, bundle, sack, fabric bundle, helmet, jacket, cart) is visible on the ground/surface without a clear owner attending it. Color, brand or shape are NOT used to dismiss the object. Do NOT dismiss an item because it "looks like" decoration, merchandise or trash.
+The only things that are NOT abandoned objects are permanent installations/fixtures that belong to the venue: trash bins / waste containers / recycling bins (of any size, color or shape, whether mounted, free-standing, wheeled or grouped in a row), planters, bollards, fire extinguishers, signage, traffic cones, lamp posts, fixed benches, vendor stalls. These NEVER count as abandoned objects, no matter how prominent they look or how close they are to a wall/corner. In particular, a trash bin / waste container / recycling bin is ALWAYS a fixture — never report it as an abandoned object even if no one is next to it.
 If the same person returns to the item within the sequence, it is NOT abandonment.
+
+EVIDENCE BAR (be specific, not speculative)
+To report an ABANDONED_OBJECT incident at least ONE of these two evidence sets must hold; otherwise do NOT report:
+  (E1) DEPOSITOR EVENT: in this sequence you can identify a person who, at some point, was carrying / holding / standing immediately next to a portable item, AND that same person then clearly moves away from it (several meters, out of frame, into the distance, walks back into a building, mixes into a distant crowd) and does NOT return within the sequence, AND the item remains in place. Describe the depositor (clothing, last seen direction) in `person_of_interest`.
+  (E2) IDENTIFIABLE UNATTENDED ITEM: a CLEARLY IDENTIFIABLE portable object (recognizable as a bag, backpack, suitcase, duffel, box, parcel, bundle, sack, jacket, helmet — not just a vague "small dark blob" or shadow on the floor) is visible on the ground/surface for at least 5 sampled frames with NO person within roughly arm's reach attending it, AND its silhouette can be described concretely (e.g. "grey backpack ≈40 cm tall with visible straps", "dark duffel bag with handles", "cardboard box").
+Pattern (E1) takes priority. If you observe (E1), report even if the item is small or partially occluded — the departure event is what defines the incident. If you only have (E2), the item description in `behavioral_indicators` MUST name the object class concretely; "small object", "dark item on the ground" or "unidentified shape" are NOT sufficient — do not report in that case.
+
+CONTINUITY ACROSS SEGMENTS
+The video is split into ~16 s segments. A bag placed in one segment will already be on the ground from frame 1 of the NEXT segment, with the depositor still walking away during this segment. If you see, in this sequence, a person who starts near a portable item on the ground (especially in the background or near walls / planters / hedges) and then walks decisively away while the item stays, this is the WALK-AWAY half of a placement-and-walk-away event — report it under (E1). Do NOT require that you witnessed the actual placement moment in this sequence.
 
 Abandoned-object classification:
 - POSSIBLE_ABANDONMENT: item set down but owner still next to it or clearly attending it; OR an unattended item is visible but the placement/owner cannot be confirmed.
@@ -183,7 +193,7 @@ Abandoned-object classification:
 - CONFIRMED_ABANDONMENT_SUSPICIOUS: owner has clearly left the scene leaving the item, possibly with evasive behavior (looking around, covering it, walking away quickly, changing direction, glancing back).
 
 DETECTION BIAS
-- Public-safety oriented: when in genuine doubt between no-incident and an incident, report the incident with confidence "low". Missing a real riot or a real abandonment is worse than a false alarm.
+- Public-safety oriented: when in genuine doubt between no-incident and an incident, report the incident with confidence "low". Missing a real riot or a real abandonment is worse than a false alarm. False positives on small festive items (a flag/cup/paper left on the ground) are tolerated.
 
 CONFIDENCE (per incident)
 - high: the defining behavior is clearly visible across multiple frames.
@@ -192,7 +202,6 @@ CONFIDENCE (per incident)
 
 OUTPUT (STRICT)
 Respond with a SINGLE JSON object that exactly matches this schema, and nothing else (no prose, no markdown, no code fences):
-
 {
   "incident_detected": true | false,
   "incidents": [
